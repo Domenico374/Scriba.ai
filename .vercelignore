@@ -1,0 +1,5 @@
+.env*
+prove/
+*.txt
+!lib/fonts/*.txt
+!public/fonts/*.txt

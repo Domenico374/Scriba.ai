@@ -1,2 +1,7 @@
-.vercel
+node_modules/
 .env*
+.vercel/
+*.txt
+!lib/fonts/*.txt
+!public/fonts/*.txt
+prove/

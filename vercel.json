@@ -1,19 +1,6 @@
 {
-  "version": 2,
   "functions": {
-    "api/*.js": {
-      "maxDuration": 60,
-      "memory": 1024
-    }
-  },
-  "headers": [
-    {
-      "source": "/api/(.*)",
-      "headers": [
-        { "key": "Access-Control-Allow-Origin", "value": "*" },
-        { "key": "Access-Control-Allow-Methods", "value": "GET,POST,PUT,DELETE" },
-        { "key": "Access-Control-Allow-Headers", "value": "Content-Type" }
-      ]
-    }
-  ]
+    "api/genera.js": { "maxDuration": 300, "includeFiles": "lib/fonts/**" },
+    "api/trascrivi.js": { "maxDuration": 120 }
+  }
 }

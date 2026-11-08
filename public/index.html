@@ -1,0 +1,725 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1B2A41">
+<title>Scriba</title>
+<style>
+  @font-face { font-family: Caladea; src: url(fonts/Caladea-Regular.ttf); font-display: swap; }
+  @font-face { font-family: Caladea; font-weight: 700; src: url(fonts/Caladea-Bold.ttf); font-display: swap; }
+  @font-face { font-family: Caladea; font-style: italic; src: url(fonts/Caladea-Italic.ttf); font-display: swap; }
+
+  :root {
+    --blu: #1B2A41;
+    --blu-chiaro: #33476A;
+    --testo: #222;
+    --grigio: #5A5A5A;
+    --filetto: #D5D2CB;
+    --bordo: #BDB9B0;
+    --fondo-pagina: #1B2A41;
+    --fondo-tenue: #F6F5F1;
+    --foglio: #fff;
+    --errore: #9B1C1C;
+    --fondo-errore: #FBEFEF;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    padding: 40px 16px 56px;
+    background: var(--fondo-pagina);
+    color: var(--testo);
+    font: 17px/1.5 Caladea, Cambria, Georgia, serif;
+  }
+  button, input, textarea, select { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--blu); outline-offset: 2px; }
+  [hidden] { display: none !important; }
+
+  .foglio {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 44px 52px 36px;
+    background: var(--foglio);
+    border-radius: 2px;
+    box-shadow: 0 16px 44px rgba(0, 0, 0, .32);
+  }
+
+  header { text-align: center; padding-bottom: 20px; border-bottom: 3px double var(--blu); }
+  h1 { margin: 0; color: var(--blu); font-size: 30px; line-height: 1.2; letter-spacing: .01em; }
+  .sotto { margin: 4px 0 0; color: var(--grigio); font-style: italic; }
+
+  .passo { margin-top: 30px; }
+  h2 {
+    margin: 0 0 12px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid var(--filetto);
+    color: var(--blu);
+    font-size: 17px;
+    font-variant: small-caps;
+    letter-spacing: .04em;
+  }
+  .aiuto { margin: 6px 0 0; color: var(--grigio); font-size: 15px; }
+
+  .campo { position: relative; }
+  input[type=password], input[type=text], input[type=date], textarea, select {
+    width: 100%;
+    padding: 10px 13px;
+    border: 1px solid var(--bordo);
+    border-radius: 4px;
+    background: #fff;
+  }
+  select { appearance: none; padding-right: 36px; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231B2A41' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center / 16px; cursor: pointer; }
+  #codice { padding-right: 84px; }
+  input:focus, textarea:focus, select:focus { border-color: var(--blu); }
+  textarea { display: block; min-height: 190px; resize: vertical; line-height: 1.45; }
+  .mostra {
+    position: absolute; top: 6px; right: 6px;
+    padding: 5px 10px;
+    border: 0; border-radius: 3px;
+    background: none;
+    color: var(--blu-chiaro);
+    font-size: 15px;
+    cursor: pointer;
+  }
+  .mostra:hover { background: var(--fondo-tenue); }
+
+  details { margin-top: 12px; border: 1px solid var(--filetto); border-radius: 6px; }
+  summary { padding: 9px 14px; color: var(--blu); cursor: pointer; }
+  summary small { color: var(--grigio); font-size: 14px; }
+  details[open] summary { border-bottom: 1px solid var(--filetto); }
+  .dentro { padding: 14px; }
+  .griglia { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 14px; }
+  .griglia .largo { grid-column: 1 / -1; }
+  label.etichetta { display: block; margin-bottom: 3px; color: var(--grigio); font-size: 15px; }
+  #istruzioni { min-height: 110px; }
+  .riga-azioni { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .riga-azioni input { flex: 1 1 200px; }
+
+  .secondario {
+    padding: 8px 14px;
+    border: 1px solid var(--blu);
+    border-radius: 4px;
+    background: #fff;
+    color: var(--blu);
+    cursor: pointer;
+  }
+  .secondario:hover:not(:disabled) { background: var(--blu); color: #fff; }
+  .secondario:disabled { border-color: var(--bordo); color: var(--bordo); cursor: default; }
+  .leggero { border-color: transparent; color: var(--blu-chiaro); }
+
+  .schede { display: inline-flex; flex-wrap: wrap; gap: 2px; margin-bottom: 12px; padding: 3px; border-radius: 6px; background: var(--fondo-tenue); }
+  .schede button {
+    padding: 6px 14px;
+    border: 0; border-radius: 4px;
+    background: none;
+    color: var(--grigio);
+    cursor: pointer;
+  }
+  .schede button[aria-pressed=true] { background: #fff; color: var(--blu); font-weight: 700; box-shadow: 0 1px 2px rgba(27, 42, 65, .16); }
+
+  .zona {
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    width: 100%;
+    padding: 34px 16px;
+    border: 1px dashed #A9A59B;
+    border-radius: 6px;
+    background: var(--fondo-tenue);
+    color: var(--grigio);
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .15s, background .15s;
+  }
+  .zona:hover, .zona.sopra { border-color: var(--blu); background: #EEF0F3; }
+  .zona svg { width: 34px; height: 34px; color: var(--blu); }
+  .zona strong { color: var(--blu); }
+  .zona small { font-size: 14px; }
+
+  .scelto {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid var(--filetto);
+    border-radius: 6px;
+    background: var(--fondo-tenue);
+  }
+  .scelto svg { flex: none; width: 26px; height: 26px; color: var(--blu); }
+  .scelto div { flex: 1; min-width: 0; }
+  .scelto strong { display: block; overflow: hidden; color: var(--blu); text-overflow: ellipsis; white-space: nowrap; }
+  .scelto small { color: var(--grigio); font-size: 14px; }
+  .togli { flex: none; padding: 4px 10px; border: 0; border-radius: 3px; background: none; color: var(--blu-chiaro); font-size: 15px; cursor: pointer; }
+  .togli:hover { background: #fff; }
+
+  .avanzamento { height: 6px; margin-top: 12px; overflow: hidden; border-radius: 3px; background: var(--filetto); }
+  .avanzamento div { width: 0; height: 100%; background: var(--blu); transition: width .3s; }
+  #statoAudio { margin: 8px 0 0; color: var(--grigio); font-size: 15px; }
+  #statoAudio:empty { display: none; }
+  #statoAudio.errore { padding: 7px 10px; border-radius: 4px; background: var(--fondo-errore); color: var(--errore); }
+
+  .principale {
+    display: block;
+    width: 100%;
+    padding: 13px 26px;
+    border: 0; border-radius: 4px;
+    background: var(--blu);
+    color: #fff;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: .01em;
+    cursor: pointer;
+    transition: background .15s;
+  }
+  .principale:hover:not(:disabled) { background: var(--blu-chiaro); }
+  .principale:disabled { background: #8A93A2; cursor: default; }
+  #genera { margin-top: 30px; }
+  #trascrivi { margin-top: 12px; font-size: 17px; }
+
+  #stato { margin: 14px 0 0; color: var(--grigio); text-align: center; }
+  #stato:empty { display: none; }
+  #stato.errore { padding: 9px 12px; border-radius: 4px; background: var(--fondo-errore); color: var(--errore); }
+
+  .barra { display: none; height: 3px; margin-top: 16px; overflow: hidden; border-radius: 2px; background: var(--filetto); }
+  .barra.attiva { display: block; }
+  .barra::before { content: ""; display: block; width: 34%; height: 100%; background: var(--blu); animation: scorri 1.7s ease-in-out infinite; }
+  @keyframes scorri { from { transform: translateX(-110%); } to { transform: translateX(310%); } }
+
+  #risultato { display: none; margin-top: 30px; }
+  #risultato h2 { font-size: 19px; }
+  .scarica-file { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .scarica {
+    display: flex; align-items: center; justify-content: center; gap: 9px;
+    padding: 12px 16px;
+    border: 1px solid var(--blu);
+    border-radius: 4px;
+    color: var(--blu);
+    font-weight: 700;
+    text-decoration: none;
+    transition: background .15s, color .15s;
+  }
+  .scarica:hover { background: var(--blu); color: #fff; }
+  .scarica svg { width: 19px; height: 19px; }
+  #scaricaTrascrizione { display: inline-block; margin-top: 8px; color: var(--blu-chiaro); font-size: 15px; }
+
+  #punti { display: none; margin-top: 22px; padding: 14px 18px 8px; border-top: 1px solid var(--blu); border-bottom: 1px solid var(--blu); }
+  #punti h3 { margin: 0 0 8px; color: var(--blu); font-size: 15px; font-variant: small-caps; letter-spacing: .05em; }
+  #punti ul { margin: 0; padding: 0; list-style: none; }
+  #punti li { position: relative; margin-bottom: 7px; padding-left: 16px; font-size: 16px; }
+  #punti li::before { content: "–"; position: absolute; left: 0; color: var(--blu); }
+
+  footer { margin-top: 32px; padding-top: 12px; border-top: 1px solid var(--filetto); color: var(--grigio); font-size: 14px; text-align: center; }
+
+  @media (max-width: 560px) {
+    body { padding: 12px 10px 24px; }
+    .foglio { padding: 28px 16px 24px; }
+    h1 { font-size: 26px; }
+    .scarica-file, .griglia { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+    .barra::before { width: 100%; animation: none; opacity: .6; }
+  }
+</style>
+</head>
+<body>
+<main class="foglio">
+  <header>
+    <h1>Scriba</h1>
+    <p class="sotto">Dalla registrazione o dagli appunti al verbale in Word e PDF</p>
+  </header>
+
+  <section class="passo">
+    <h2><label for="codice">1. Codice di accesso</label></h2>
+    <div class="campo">
+      <input id="codice" type="password" autocomplete="off" spellcheck="false">
+      <button class="mostra" id="mostra" type="button">Mostra</button>
+    </div>
+  </section>
+
+  <section class="passo">
+    <h2><label for="modello">2. Tipo di verbale</label></h2>
+    <select id="modello"></select>
+    <p class="aiuto" id="descrizioneModello"></p>
+
+    <details id="pannelloIstruzioni">
+      <summary>Istruzioni aggiuntive <small>(facoltative)</small></summary>
+      <div class="dentro">
+        <textarea id="istruzioni" maxlength="4000" placeholder="Ad esempio: scrivi i partecipanti in ordine alfabetico; chiama la sezione finale &quot;Varie ed eventuali&quot;."></textarea>
+        <div class="riga-azioni">
+          <input id="nomeNuovo" type="text" placeholder="Nome del nuovo modello" aria-label="Nome del nuovo modello">
+          <button class="secondario" id="salvaModello" type="button">Salva come mio modello</button>
+          <button class="secondario leggero" id="eliminaModello" type="button" hidden>Elimina questo modello</button>
+        </div>
+        <p class="aiuto">I modelli salvati restano solo in questo browser.</p>
+      </div>
+    </details>
+  </section>
+
+  <section class="passo">
+    <h2>3. Dati della riunione</h2>
+    <details id="pannelloDati">
+      <summary>Compila quello che sai <small>(facoltativo, ma riduce gli errori)</small></summary>
+      <div class="dentro griglia">
+        <div><label class="etichetta" for="datoEnte">Organizzazione</label><input id="datoEnte" type="text"></div>
+        <div><label class="etichetta" for="datoOrgano">Organo o gruppo</label><input id="datoOrgano" type="text" placeholder="Es. Consiglio direttivo"></div>
+        <div><label class="etichetta" for="datoData">Data</label><input id="datoData" type="date"></div>
+        <div><label class="etichetta" for="datoRedattore">Redattore del verbale</label><input id="datoRedattore" type="text"></div>
+        <div class="largo"><label class="etichetta" for="datoOggetto">Oggetto</label><input id="datoOggetto" type="text"></div>
+        <div class="largo"><label class="etichetta" for="datoPartecipanti">Partecipanti</label><input id="datoPartecipanti" type="text" placeholder="Nomi separati da virgole"></div>
+      </div>
+    </details>
+  </section>
+
+  <section class="passo">
+    <h2>4. Registrazione, documento o testo</h2>
+    <div class="schede" role="group" aria-label="Da dove parti">
+      <button data-modo="audio" type="button" aria-pressed="true">Registrazione</button>
+      <button data-modo="file" type="button" aria-pressed="false">Documento</button>
+      <button data-modo="testo" type="button" aria-pressed="false">Testo</button>
+    </div>
+
+    <div id="pannelloAudio">
+      <button class="zona" id="zonaAudio" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0"/><path d="M12 17.5V21"/></svg>
+        <strong>Trascina qui la registrazione o clicca per sceglierla</strong>
+        <small>MP3, M4A, WAV, OGG, WebM o video MP4 · fino a 500 MB</small>
+      </button>
+      <div class="scelto" id="sceltoAudio" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/></svg>
+        <div><strong id="nomeAudio"></strong><small id="pesoAudio"></small></div>
+        <button class="togli" id="togliAudio" type="button">Cambia</button>
+      </div>
+      <input id="sceltaAudio" type="file" accept="audio/*,video/mp4,video/webm,.m4a,.mp3,.wav,.ogg,.opus,.webm,.mp4" hidden>
+      <button class="principale" id="trascrivi" type="button" hidden>Trascrivi la registrazione</button>
+      <div class="avanzamento" id="avanzamento" hidden><div></div></div>
+      <p id="statoAudio" role="status"></p>
+    </div>
+
+    <div id="pannelloFile" hidden>
+      <button class="zona" id="zonaFile" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V4"/><path d="m7.5 8.5 4.5-4.5 4.5 4.5"/><path d="M4 15v3.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V15"/></svg>
+        <strong>Trascina qui il file o clicca per sceglierlo</strong>
+        <small>Trascrizione, bozza o appunti in .docx, .pdf o .txt · fino a 3 MB</small>
+      </button>
+      <div class="scelto" id="sceltoFile" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a1.5 1.5 0 0 0-1.5 1.5v15A1.5 1.5 0 0 0 7 21h10a1.5 1.5 0 0 0 1.5-1.5V7.5z"/><path d="M14 3v4.5h4.5"/><path d="M9 13h6M9 16.5h6"/></svg>
+        <div><strong id="nomeFile"></strong><small id="pesoFile"></small></div>
+        <button class="togli" id="togliFile" type="button">Cambia</button>
+      </div>
+      <input id="sceltaFile" type="file" accept=".docx,.pdf,.txt" hidden>
+    </div>
+
+    <div id="pannelloTesto" hidden>
+      <textarea id="testo" aria-label="Testo della trascrizione, della bozza o degli appunti" placeholder="Incolla qui la trascrizione, la bozza o gli appunti della riunione"></textarea>
+      <a id="scaricaTrascrizione" hidden>Scarica la trascrizione (.txt)</a>
+    </div>
+  </section>
+
+  <button class="principale" id="genera" type="button">Genera il verbale</button>
+  <div class="barra" id="barra"></div>
+  <p id="stato" role="status"></p>
+
+  <section id="risultato">
+    <h2>Verbale pronto</h2>
+    <div class="scarica-file">
+      <a id="scaricaWord" class="scarica">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"/><path d="m7.5 10.5 4.5 4.5 4.5-4.5"/><path d="M5 20h14"/></svg>
+        Scarica Word
+      </a>
+      <a id="scaricaPdf" class="scarica">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"/><path d="m7.5 10.5 4.5 4.5 4.5-4.5"/><path d="M5 20h14"/></svg>
+        Scarica PDF
+      </a>
+    </div>
+    <div id="punti">
+      <h3>Punti da controllare</h3>
+      <ul id="elenco"></ul>
+    </div>
+  </section>
+
+  <footer>La registrazione viene trascritta da OpenAI e il testo viene inviato ad Anthropic per scrivere il verbale; niente viene salvato su questo sito. Rileggi sempre il verbale prima di diffonderlo.</footer>
+</main>
+<script type="module">
+  import { preparaRegistrazione, wav } from './audio.js';
+
+  const $ = (id) => document.getElementById(id);
+  const PESO_MASSIMO_FILE = 3 * 1024 * 1024;
+  const PESO_MASSIMO_AUDIO = 500 * 1024 * 1024;
+  const PEZZI_IN_PARALLELO = 4;
+  const PREFISSO_MIO = 'mio:';
+
+  let modo = 'audio';
+  let fileScelto = null;
+  let audioScelto = null;
+  let fissi = [];
+  let interruzione = null;
+  let timer = null;
+
+  // ---------- memoria del browser, solo per comodità ----------
+  const leggi = (chiave, riserva) => { try { return JSON.parse(localStorage.getItem(chiave)) ?? riserva; } catch { return riserva; } };
+  const scrivi = (chiave, valore) => { try { localStorage.setItem(chiave, JSON.stringify(valore)); } catch {} };
+  try { $('codice').value = sessionStorage.getItem('codice') ?? ''; } catch {}
+  const ricordaCodice = () => { try { sessionStorage.setItem('codice', $('codice').value); } catch {} };
+
+  const pesoLeggibile = (byte) =>
+    byte < 1024 * 1024 ? `${Math.max(1, Math.round(byte / 1024))} KB` : `${(byte / 1024 / 1024).toFixed(1).replace('.', ',')} MB`;
+  const minuti = (secondi) => `${Math.floor(secondi / 60)}:${String(Math.round(secondi % 60)).padStart(2, '0')}`;
+
+  function stato(testo, errore = false) {
+    $('stato').textContent = testo;
+    $('stato').classList.toggle('errore', errore);
+  }
+  function statoAudio(testo, errore = false) {
+    $('statoAudio').textContent = testo;
+    $('statoAudio').classList.toggle('errore', errore);
+  }
+
+  // ---------- modelli ----------
+  const miei = () => leggi('modelli', []);
+
+  function modelloCorrente() {
+    const valore = $('modello').value;
+    if (valore.startsWith(PREFISSO_MIO)) {
+      const mio = miei().find((m) => m.id === valore.slice(PREFISSO_MIO.length));
+      if (mio) return { ...mio, base: mio.base, mio: true };
+    }
+    return { ...fissi.find((m) => m.id === valore), base: valore, mio: false };
+  }
+
+  function riempiModelli(selezionato) {
+    const opzioni = fissi.map(({ id, nome }) => new Option(nome, id));
+    const lista = miei();
+    $('modello').replaceChildren(...opzioni);
+    if (lista.length) {
+      const gruppo = document.createElement('optgroup');
+      gruppo.label = 'I miei modelli';
+      gruppo.append(...lista.map(({ id, nome }) => new Option(nome, PREFISSO_MIO + id)));
+      $('modello').append(gruppo);
+    }
+    if (selezionato && [...$('modello').options].some((o) => o.value === selezionato)) $('modello').value = selezionato;
+    applicaModello();
+  }
+
+  function applicaModello() {
+    const m = modelloCorrente();
+    const base = fissi.find((f) => f.id === m.base);
+    $('descrizioneModello').textContent = m.mio ? `Basato su «${base?.nome ?? ''}».` : (m.descrizione ?? '');
+    $('istruzioni').value = m.mio ? m.istruzioni : '';
+    if (m.mio && m.ente) $('datoEnte').value = m.ente;
+    if (m.mio && m.istruzioni) $('pannelloIstruzioni').open = true;
+    $('eliminaModello').hidden = !m.mio;
+    scrivi('ultimoModello', $('modello').value);
+  }
+
+  function salvaModello() {
+    const nome = $('nomeNuovo').value.trim();
+    if (!nome) {
+      $('nomeNuovo').focus();
+      return stato('Scrivi un nome per il nuovo modello.', true);
+    }
+    const corrente = modelloCorrente();
+    const nuovo = {
+      id: Date.now().toString(36),
+      nome,
+      base: corrente.base,
+      istruzioni: $('istruzioni').value.trim(),
+      ente: $('datoEnte').value.trim(),
+    };
+    scrivi('modelli', [...miei(), nuovo]);
+    $('nomeNuovo').value = '';
+    riempiModelli(PREFISSO_MIO + nuovo.id);
+    stato(`Modello «${nome}» salvato.`);
+  }
+
+  function eliminaModello() {
+    const m = modelloCorrente();
+    if (!m.mio || !confirm(`Eliminare il modello «${m.nome}»?`)) return;
+    scrivi('modelli', miei().filter((x) => x.id !== m.id));
+    riempiModelli(m.base);
+  }
+
+  async function caricaModelli() {
+    try {
+      const risposta = await fetch('/api/modelli');
+      const { modelli, predefinito } = await risposta.json();
+      fissi = modelli;
+      riempiModelli(leggi('ultimoModello', predefinito));
+    } catch {
+      stato('Non riesco a caricare i tipi di verbale. Ricarica la pagina.', true);
+    }
+  }
+
+  // ---------- dati della riunione ----------
+  function datiRiunione() {
+    const data = $('datoData').value;
+    return {
+      ente: $('datoEnte').value,
+      organo: $('datoOrgano').value,
+      data: data ? new Date(`${data}T12:00`).toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : '',
+      oggetto: $('datoOggetto').value,
+      partecipanti: $('datoPartecipanti').value,
+      redattore: $('datoRedattore').value,
+    };
+  }
+  $('datoRedattore').value = leggi('redattore', '');
+  $('datoRedattore').addEventListener('change', () => scrivi('redattore', $('datoRedattore').value));
+
+  // ---------- schede ----------
+  function cambiaModo(nuovo) {
+    modo = nuovo;
+    for (const b of document.querySelectorAll('.schede button')) b.setAttribute('aria-pressed', b.dataset.modo === modo);
+    $('pannelloAudio').hidden = modo !== 'audio';
+    $('pannelloFile').hidden = modo !== 'file';
+    $('pannelloTesto').hidden = modo !== 'testo';
+    $('genera').hidden = modo === 'audio';
+    stato('');
+  }
+
+  // ---------- scelta dei file ----------
+  function mostraScelto(tipo, file) {
+    const N = tipo === 'audio' ? 'Audio' : 'File';
+    $(`zona${N}`).hidden = Boolean(file);
+    $(`scelto${N}`).hidden = !file;
+    if (file) {
+      $(`nome${N}`).textContent = file.name;
+      $(`peso${N}`).textContent = pesoLeggibile(file.size);
+    }
+    if (tipo === 'audio') {
+      $('trascrivi').hidden = !file;
+      $('avanzamento').hidden = true;
+      statoAudio('');
+    }
+  }
+
+  function scegliFile(f) {
+    if (!f) return;
+    if (!/\.(docx|pdf|txt)$/i.test(f.name)) return stato('Puoi caricare solo file .docx, .pdf o .txt.', true);
+    if (f.size > PESO_MASSIMO_FILE) return stato('Il file è troppo grande: il massimo è 3 MB.', true);
+    fileScelto = f;
+    stato('');
+    mostraScelto('file', f);
+  }
+
+  function scegliAudio(f) {
+    if (!f) return;
+    if (!/^(audio|video)\//.test(f.type) && !/\.(m4a|mp3|wav|ogg|opus|webm|mp4|aac|flac)$/i.test(f.name)) {
+      return statoAudio('Questo file non sembra una registrazione.', true);
+    }
+    if (f.size > PESO_MASSIMO_AUDIO) return statoAudio('La registrazione è troppo grande: il massimo è 500 MB.', true);
+    audioScelto = f;
+    mostraScelto('audio', f);
+  }
+
+  function collegaZona(zona, scelta, scegli) {
+    $(zona).addEventListener('click', () => $(scelta).click());
+    $(scelta).addEventListener('change', (e) => scegli(e.target.files[0]));
+    for (const evento of ['dragenter', 'dragover']) {
+      $(zona).addEventListener(evento, (e) => { e.preventDefault(); $(zona).classList.add('sopra'); });
+    }
+    for (const evento of ['dragleave', 'drop']) {
+      $(zona).addEventListener(evento, (e) => { e.preventDefault(); $(zona).classList.remove('sopra'); });
+    }
+    $(zona).addEventListener('drop', (e) => scegli(e.dataTransfer.files[0]));
+  }
+
+  // ---------- trascrizione ----------
+  function vocabolario() {
+    const m = modelloCorrente();
+    const base = fissi.find((f) => f.id === m.base);
+    const d = datiRiunione();
+    return [d.ente, d.organo, base?.vocabolario, d.partecipanti && `Partecipanti: ${d.partecipanti}.`]
+      .filter(Boolean).join(' ').slice(0, 800);
+  }
+
+  async function trascriviPezzo(pezzo, segnale) {
+    for (let tentativo = 1; ; tentativo += 1) {
+      try {
+        const risposta = await fetch('/api/trascrivi', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/octet-stream',
+            'X-Codice': $('codice').value,
+            'X-Vocabolario': encodeURIComponent(vocabolario()),
+          },
+          body: wav(pezzo),
+          signal: segnale,
+        });
+        const dati = await risposta.json().catch(() => ({ errore: 'Risposta non valida dal server.' }));
+        if (risposta.ok) return dati.testo.trim();
+        if (risposta.status === 401 || risposta.status === 503 || tentativo === 3) throw new Error(dati.errore);
+      } catch (errore) {
+        if (segnale.aborted || tentativo === 3 || /codice|configurata/i.test(errore.message)) throw errore;
+      }
+      await new Promise((ok) => setTimeout(ok, 1500 * tentativo));
+    }
+  }
+
+  async function trascrivi() {
+    if (interruzione) {
+      interruzione.annullata = true;
+      interruzione.abort();
+      return;
+    }
+    if (!$('codice').value) {
+      $('codice').focus();
+      return statoAudio('Inserisci il codice di accesso.', true);
+    }
+    ricordaCodice();
+    interruzione = new AbortController();
+    const controllo = interruzione;
+    const segnale = controllo.signal;
+    $('trascrivi').textContent = 'Annulla';
+    $('togliAudio').disabled = true;
+    $('avanzamento').hidden = false;
+    const barra = $('avanzamento').firstElementChild;
+    barra.style.width = '0';
+    try {
+      statoAudio('Preparo la registrazione…');
+      await new Promise((ok) => setTimeout(ok, 50));
+      const { durata, pezzi } = await preparaRegistrazione(audioScelto);
+      if (!pezzi.length) throw new Error('Nella registrazione non si sente nessuno.');
+      const testi = new Array(pezzi.length);
+      let fatti = 0;
+      let prossimo = 0;
+      const aggiorna = () => {
+        barra.style.width = `${Math.round((fatti / pezzi.length) * 100)}%`;
+        statoAudio(`Trascrivo ${minuti(durata)} di registrazione: ${fatti} pezzi su ${pezzi.length}.`);
+      };
+      aggiorna();
+      const lavoratore = async () => {
+        while (prossimo < pezzi.length) {
+          const i = prossimo++;
+          testi[i] = await trascriviPezzo(pezzi[i], segnale);
+          fatti += 1;
+          aggiorna();
+        }
+      };
+      await Promise.all(Array.from({ length: Math.min(PEZZI_IN_PARALLELO, pezzi.length) }, lavoratore));
+      const trascrizione = testi.filter(Boolean).join('\n\n');
+      $('testo').value = trascrizione;
+      preparaScaricamento($('scaricaTrascrizione'), `Trascrizione_${audioScelto.name.replace(/\.[^.]+$/, '')}.txt`, new Blob([trascrizione], { type: 'text/plain;charset=utf-8' }));
+      $('scaricaTrascrizione').hidden = false;
+      cambiaModo('testo');
+      stato('Trascrizione pronta. Se vuoi, correggila qui sopra, poi genera il verbale.');
+    } catch (errore) {
+      // Se un pezzo fallisce, ferma anche gli altri.
+      if (!segnale.aborted) controllo.abort();
+      barra.style.width = '0';
+      $('avanzamento').hidden = true;
+      statoAudio(controllo.annullata ? 'Trascrizione annullata.' : errore.message || 'Trascrizione non riuscita.', !controllo.annullata);
+    } finally {
+      interruzione = null;
+      $('trascrivi').textContent = 'Trascrivi la registrazione';
+      $('togliAudio').disabled = false;
+    }
+  }
+
+  // ---------- generazione del verbale ----------
+  function base64(f) {
+    return new Promise((ok, ko) => {
+      const lettore = new FileReader();
+      lettore.onload = () => ok(lettore.result.split(',')[1]);
+      lettore.onerror = () => ko(new Error('Non riesco a leggere il file.'));
+      lettore.readAsDataURL(f);
+    });
+  }
+
+  function preparaScaricamento(link, nome, blob) {
+    if (link.href) URL.revokeObjectURL(link.href);
+    link.href = URL.createObjectURL(blob);
+    link.download = nome;
+  }
+  const daBase64 = (contenuto, tipo) => new Blob([Uint8Array.from(atob(contenuto), (c) => c.charCodeAt(0))], { type: tipo });
+
+  function mostraPunti(punti) {
+    $('elenco').replaceChildren(...punti.map(({ argomento, nota }) => {
+      const voce = document.createElement('li');
+      const titolo = document.createElement('strong');
+      titolo.textContent = `${argomento}: `;
+      voce.append(titolo, nota);
+      return voce;
+    }));
+    $('punti').style.display = punti.length ? 'block' : 'none';
+  }
+
+  function avviaAttesa() {
+    const inizio = Date.now();
+    const aggiorna = () => stato(`Sto scrivendo il verbale (${minuti((Date.now() - inizio) / 1000)}). Può richiedere qualche minuto: lascia aperta la pagina.`);
+    aggiorna();
+    timer = setInterval(aggiorna, 1000);
+    $('barra').classList.add('attiva');
+  }
+  function fermaAttesa() {
+    clearInterval(timer);
+    $('barra').classList.remove('attiva');
+  }
+
+  async function genera() {
+    const testo = $('testo').value;
+    if (!$('codice').value) {
+      $('codice').focus();
+      return stato('Inserisci il codice di accesso.', true);
+    }
+    if (modo === 'file' ? !fileScelto : !testo.trim()) {
+      return stato(modo === 'file' ? 'Carica un file.' : 'Incolla il testo o trascrivi una registrazione.', true);
+    }
+    ricordaCodice();
+    $('genera').disabled = true;
+    $('risultato').style.display = 'none';
+    avviaAttesa();
+    try {
+      const m = modelloCorrente();
+      const corpo = {
+        codice: $('codice').value,
+        modello: m.base,
+        istruzioniAggiuntive: $('istruzioni').value,
+        dati: datiRiunione(),
+      };
+      if (modo === 'file') {
+        corpo.file = await base64(fileScelto);
+        corpo.nomeFile = fileScelto.name;
+      } else {
+        corpo.testo = testo;
+      }
+      const risposta = await fetch('/api/genera', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(corpo),
+      });
+      const dati = await risposta.json().catch(() => ({ errore: 'Il server ha impiegato troppo tempo. Riprova.' }));
+      if (!risposta.ok) throw new Error(dati.errore);
+      preparaScaricamento($('scaricaWord'), `${dati.nomeFile}.docx`, daBase64(dati.word, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'));
+      preparaScaricamento($('scaricaPdf'), `${dati.nomeFile}.pdf`, daBase64(dati.pdf, 'application/pdf'));
+      mostraPunti(dati.puntiDaControllare);
+      fermaAttesa();
+      stato('');
+      $('risultato').style.display = 'block';
+      $('risultato').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } catch (errore) {
+      fermaAttesa();
+      stato(errore.message, true);
+    } finally {
+      $('genera').disabled = false;
+    }
+  }
+
+  // ---------- collegamenti ----------
+  $('genera').addEventListener('click', genera);
+  $('trascrivi').addEventListener('click', trascrivi);
+  $('modello').addEventListener('change', applicaModello);
+  $('salvaModello').addEventListener('click', salvaModello);
+  $('eliminaModello').addEventListener('click', eliminaModello);
+  for (const b of document.querySelectorAll('.schede button')) b.addEventListener('click', () => cambiaModo(b.dataset.modo));
+  $('mostra').addEventListener('click', () => {
+    const nascosto = $('codice').type === 'password';
+    $('codice').type = nascosto ? 'text' : 'password';
+    $('mostra').textContent = nascosto ? 'Nascondi' : 'Mostra';
+  });
+  collegaZona('zonaFile', 'sceltaFile', scegliFile);
+  collegaZona('zonaAudio', 'sceltaAudio', scegliAudio);
+  $('togliFile').addEventListener('click', () => { fileScelto = null; $('sceltaFile').value = ''; mostraScelto('file', null); });
+  $('togliAudio').addEventListener('click', () => { audioScelto = null; $('sceltaAudio').value = ''; mostraScelto('audio', null); });
+
+  cambiaModo('audio');
+  caricaModelli();
+</script>
+</body>
+</html>
